@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -82,6 +83,7 @@ static FILE *get_memo_file_ptr();
 static void  usage();
 static void  fail(FILE *out, const char *fmt, ...);
 static int   delete_all();
+static bool  confirm();
 static void  show_memo_file_path();
 static NoteStatus_t get_note_status(const char *line);
 static int   mark_note_status(NoteStatus_t status, int id);
@@ -796,6 +798,20 @@ static void show_latest(int n)
 }
 
 
+/* Confirms before deleting all notes
+ * Returns 0 if user-prompt is yes(y/Y), -1 if no.
+ */
+static bool confirm()
+{
+    printf("Confirm delete all notes (y/Y)");
+
+    char confirm = getchar();
+    if (confirm == 'y' || confirm == 'Y')
+        return true;
+    else
+        return false;
+}
+
 /* Deletes all notes. Function actually
  * simply removes .memo file.
  * Returns 0 on success, -1 on failure.
@@ -1267,7 +1283,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	while ((c = getopt(argc, argv, "a:d:De:f:F:hl:m:M:pPRsTV")) != -1){
+	while ((c = getopt(argc, argv, "a:d:D:e:f:F:hl:m:M:pPRsTV")) != -1){
 		has_valid_options = 1;
 
 		switch(c){
@@ -1284,7 +1300,8 @@ int main(int argc, char *argv[])
 			delete_note(atoi(optarg));
 			break;
 		case 'D':
-			delete_all();
+            if (strcmp(optarg, "y") == 0)
+                delete_all();
 			break;
 		case 'e':
 			export_html(optarg);
@@ -1345,6 +1362,11 @@ int main(int argc, char *argv[])
 				printf("-m missing an argument <id>\n");
 			else if(optopt == 'M')
 				printf("-M missing an argument <id>\n");
+            else if(optopt =='D'){
+                // If optarg is NULL
+                if (confirm())
+                    delete_all();
+            }
 			else
 				printf("invalid option, see memo -h for help\n");
 			break;
