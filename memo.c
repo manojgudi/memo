@@ -68,7 +68,8 @@ static char *get_memo_conf_path();
 static char *get_temp_memo_path();
 static char *get_memo_conf_value(const char *prop);
 static int   is_valid_date_format(const char *date);
-static int   add_note(const char *content, const char *date);
+static int   add_note(char *content, const char *date);
+static void  rm_newline(char *content);
 static int   get_next_id();
 static int   delete_note(int id);
 static int   show_notes(NoteStatus_t status);
@@ -1099,13 +1100,15 @@ static char *get_temp_memo_path()
  * Note will be marked with status "U" which means it's "undone".
  * "D" means "done". With status P, note is marked as postponed.
  */
-static int add_note(const char *content, const char *date)
+static int add_note(char *content, const char *date)
 {
 	FILE *fp = NULL;
 	time_t t;
 	struct tm *ti;
 	int id = -1;
 	char note_date[11];
+
+    rm_newline(content);
 
 	/* Do not add an empty note */
 	if (strlen(content) == 0)
@@ -1145,6 +1148,20 @@ static int add_note(const char *content, const char *date)
 	return id;
 }
 
+/* Removes newline from content
+ */
+static void rm_newline(char* source)
+{
+  char* i = source;
+  char* j = source;
+  while(*j != 0)
+  {
+    *i = *j++;
+    if(*i != '\n')
+      i++;
+  }
+  *i = '\0';
+}
 
 static void usage()
 {
